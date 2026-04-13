@@ -47,33 +47,58 @@ JWT + user object stored in `localStorage`, loaded into Redux on startup — sur
 
 ## 3. Running Locally
 
-### Prerequisites
-- Node 18+ and npm 9+
-- Backend running at `http://localhost:4000` (or json-server mock)
+### Repo structure
+
+```
+taskflow-[name]/
+├── frontend/          ← React app (Vite + TypeScript)
+│   ├── src/
+│   ├── Dockerfile
+│   └── ...
+├── mock-server.mjs    ← Node.js mock API (no dependencies)
+├── docker-compose.yml ← Spins up both services
+├── .env.example       ← Copy to .env before running
+└── README.md
+```
+
+---
+
+### Option A — Docker (recommended, zero manual steps)
+
+Requires Docker Desktop. No Node installation needed.
 
 ```bash
-git clone https://github.com/your-name/taskflow
-cd taskflow
+git clone https://github.com/your-name/taskflow-[name]
+cd taskflow-[name]
 
-cp .env.example .env
-# VITE_API_BASE_URL=http://localhost:4000
+cp .env.example .env          # defaults are fine as-is
 
+docker compose up --build
+```
+
+- Frontend → [http://localhost:3000](http://localhost:3000)
+- Mock API → [http://localhost:4000](http://localhost:4000)
+
+To reset seed data, stop the containers and delete `mock-db.json`, then `docker compose up` again.
+
+---
+
+### Option B — Local dev (Node required)
+
+```bash
+git clone https://github.com/your-name/taskflow-[name]
+cd taskflow-[name]
+
+# Terminal 1 — start mock API
+node mock-server.mjs
+# API at http://localhost:4000
+
+# Terminal 2 — start frontend dev server
+cd frontend
+cp .env.example .env          # VITE_API_BASE_URL=http://localhost:4000
 npm install
 npm run dev
-# App available at http://localhost:3000
-```
-
-### Build for production
-```bash
-npm run build
-# Output in /dist — serve with any static file server or Docker
-```
-
-### Docker
-```bash
-docker build -t taskflow-frontend .
-docker run -p 3000:80 taskflow-frontend
-# http://localhost:3000
+# App at http://localhost:3000
 ```
 
 ---
@@ -98,19 +123,27 @@ Password: password123
 ## 6. Project Structure
 
 ```
-src/
- ├─ api/           # Axios client + per-domain API modules (auth, projects, tasks)
- ├─ components/
- │   ├─ ui/        # Button, Input, Textarea, Select, Modal, Badge, Toast, Skeleton, EmptyState, Avatar
- │   ├─ layout/    # Navbar, AppLayout
- │   ├─ tasks/     # TaskCard, TaskModal, KanbanColumn, KanbanBoard, TaskFilters
- │   └─ projects/  # ProjectCard, ProjectModal
- ├─ hooks/         # useAuth, useToast, useAppDispatch
- ├─ pages/         # LoginPage, RegisterPage, ProjectsPage, ProjectDetailPage
- ├─ routes/        # Router config, ProtectedRoute, PublicOnlyRoute
- ├─ store/         # Redux slices: auth, project, task, ui
- ├─ types/         # Shared TypeScript interfaces
- └─ utils/         # date helpers, localStorage helpers
+taskflow-[name]/
+├── frontend/
+│   ├── src/
+│   │   ├─ api/           # Axios client + per-domain modules (auth, projects, tasks, users)
+│   │   ├─ components/
+│   │   │   ├─ ui/        # Button, Input, Textarea, Select, Modal, Badge, Toast, Skeleton, EmptyState, Avatar
+│   │   │   ├─ layout/    # Navbar, AppLayout
+│   │   │   ├─ tasks/     # KanbanBoard, KanbanColumn, TaskCard, TaskModal, TaskFilters
+│   │   │   └─ projects/  # ProjectCard, ProjectModal
+│   │   ├─ hooks/         # useAuth, useToast, useAppDispatch
+│   │   ├─ pages/         # LoginPage, RegisterPage, ProjectsPage, ProjectDetailPage
+│   │   ├─ routes/        # Router config, ProtectedRoute, PublicOnlyRoute
+│   │   ├─ store/         # Redux slices: auth, project, task, ui
+│   │   ├─ types/         # Shared TypeScript interfaces
+│   │   └─ utils/         # date helpers, localStorage helpers
+│   ├─ Dockerfile         # Multi-stage: node build → nginx runtime
+│   └─ nginx.conf         # SPA routing + gzip + security headers
+├── mock-server.mjs        # Node.js mock REST API (no dependencies, seeds mock-db.json)
+├── docker-compose.yml     # Orchestrates frontend + mock-api
+├── .env.example           # Copy to .env — all vars documented with defaults
+└── README.md
 ```
 
 ---

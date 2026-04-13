@@ -6,6 +6,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --frozen-lockfile
 
+# Accept API URL at build time so Vite bakes the correct value into the bundle
+ARG VITE_API_BASE_URL=http://localhost:4000
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 COPY . .
 RUN npm run build
 
